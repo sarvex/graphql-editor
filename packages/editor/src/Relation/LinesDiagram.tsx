@@ -43,7 +43,7 @@ const NodePane = styled.div`
   font-size: 12px;
   align-items: flex-end;
   display: flex;
-  padding: 15vw;
+  padding: 50vh 50vw;
 `;
 let tRefs: Record<string, HTMLDivElement> = {};
 let refTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
