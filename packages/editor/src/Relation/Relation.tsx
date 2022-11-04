@@ -46,7 +46,6 @@ const IconWrapper = styled.div`
   font-weight: 500;
   color: ${({ theme }) => theme.inactive};
   font-family: ${fontFamilySans};
-  cursor: pointer;
   background-color: ${({ theme }) => theme.background.mainFurther};
   padding: 8px;
   border-radius: 4px;
@@ -119,6 +118,24 @@ const Main = styled.div<{ dragMode: DragMode }>`
   overflow: scroll;
   font-family: ${fontFamily};
   cursor: ${({ dragMode }) => dragMode};
+
+  &:after {
+    position: absolute;
+    content: '';
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    border: 1px solid red;
+  }
+
+  &:before {
+    position: absolute;
+    content: '';
+    left: 50%;
+    height: 100%;
+    width: 1px;
+    border: 1px solid red;
+  }
 `;
 
 const scaleStep =
@@ -206,7 +223,7 @@ export const Relation: React.FC = () => {
   };
 
   useEffect(() => {
-    document.addEventListener('wheel', scrollHandler);
+    document.addEventListener('wheel', scrollHandler, { passive: false });
 
     return () => {
       document.removeEventListener('wheel', scrollHandler);
@@ -215,10 +232,12 @@ export const Relation: React.FC = () => {
 
   const scrollHandler = (e: WheelEvent) => {
     if (e.ctrlKey && containerRef.current) {
+      e.preventDefault();
       e.stopPropagation();
       const zoomSpeed = e.deltaY / (4 / 0.015);
       const zoomingFn = scaleStep(0.015, 1.5, 0.3);
       setScaleFactor((prevValue) => zoomingFn(prevValue - zoomSpeed));
+
       return false;
     }
   };
@@ -275,6 +294,33 @@ export const Relation: React.FC = () => {
         dragMode={dragMode ? 'grabbing' : selectedNode?.field ? 'grab' : 'auto'}
         ref={containerRef}
         onMouseDown={(e) => mouseDownHandler(e)}
+        onClick={(e) => {
+          if (!containerRef.current) return;
+          const rect = containerRef.current.getBoundingClientRect();
+
+          console.log('pozycja scrolla top', containerRef.current.scrollTop);
+
+          console.log('pozycja kursora w kontenerze ', e.clientY - rect.y);
+
+          const cursorPosY =
+            e.clientY -
+            rect.y -
+            rect.height / 2 +
+            containerRef.current.scrollTop;
+
+          const cursorPosX =
+            e.clientX -
+            rect.x -
+            rect.width / 2 +
+            containerRef.current.scrollLeft;
+          // console.log('ącursorPosX', cursorPosX);
+          console.log('cursorPosY', cursorPosY);
+
+          containerRef.current.scrollTo({
+            left: cursorPosX,
+            top: cursorPosY,
+          });
+        }}
       >
         {!selectedNode?.field && <PaintNodes disableOps />}
         {selectedNode?.field && (
